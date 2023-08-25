@@ -1,0 +1,26 @@
+pipeline {
+   agent any
+
+   stages {
+       stage('Checkout') {
+           steps {
+               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/YourGitHubUsername/YourRepositoryName.git']])
+           }
+       }
+
+       stage('Build and Deploy') {
+           steps {
+               // Build and start services using Docker Compose
+               sh 'docker-compose up -d'
+           }
+       }
+
+       stage('Run Tests') {
+           steps {
+               // Run tests if applicable
+               // Replace with appropriate test command
+               sh 'docker-compose exec -T appseed-app python manage.py test'
+           }
+       }
+   }
+}
