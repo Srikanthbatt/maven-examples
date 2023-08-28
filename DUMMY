@@ -11,12 +11,24 @@ OK
 [Pipeline] { (Run Django Setup)
 [Pipeline] script
 [Pipeline] {
+[Pipeline] sh
++ chmod +x django.sh
 [Pipeline] withCredentials
 Masking supported pattern matches of $DJANGO_SUPERUSER_PASSWORD_CREDENTIAL
 [Pipeline] {
 [Pipeline] sh
 + ./django.sh
-/var/lib/jenkins/workspace/env@tmp/durable-f07bed55/script.sh: 1: ./django.sh: Permission denied
+Create migrations
+./django.sh: line 3: python: command not found
+==================================
+Migrate
+./django.sh: line 7: python: command not found
+==================================
+Create Superuser
+./django.sh: line 11: python: command not found
+==================================
+Start server
+./django.sh: line 18: python: command not found
 [Pipeline] }
 [Pipeline] // withCredentials
 [Pipeline] }
@@ -28,5 +40,5 @@ Masking supported pattern matches of $DJANGO_SUPERUSER_PASSWORD_CREDENTIAL
 [Pipeline] }
 [Pipeline] // node
 [Pipeline] End of Pipeline
-ERROR: script returned exit code 126
+ERROR: script returned exit code 127
 Finished: FAILURE
