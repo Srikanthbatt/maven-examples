@@ -1,0 +1,56 @@
+pipeline {
+   agent any
+
+   environment {
+       registry = "srikanthbattula/djangoapp"
+       registryCredential = 'dockerhub_id'
+       DJANGO_SUPERUSER_USERNAME = 'admin'  // Define the superuser username
+       DJANGO_SUPERUSER_EMAIL = 'email@kanis.hk'  // Define the superuser email
+   }
+
+   stages {
+       stage('Checkout') {
+           steps {
+               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Kanishk-ALM/Django-Postgres.git']])
+           }
+       }
+
+       stage('Build and Push Image') {
+           steps {
+               script {
+                   // Build and push your Docker image
+                   dockerImage = docker.build registry
+                   docker.withRegistry('', registryCredential) {
+                       dockerImage.push()
+                   }
+               }
+           }
+       }
+
+       stage('Deploy Using Docker Compose') {
+           steps {
+               // Start services using Docker Compose
+               sh 'docker-compose up -d'
+           }
+       }
+
+       stage('Run Tests') {
+           steps {
+               // Run tests for the Django application
+               sh 'docker-compose exec -T djangoapp python manage.py test'
+           }
+       }
+
+       stage('Run Django Setup') {
+           steps {
+               script {
+                   // Get the secret value using withCredentials
+                   withCredentials([string(credentialsId: 'DJANGO_SUPERUSER_PASSWORD', variable: 'DJANGO_SUPERUSER_PASSWORD_CREDENTIAL')]) {
+                       DJANGO_SUPERUSER_PASSWORD = DJANGO_SUPERUSER_PASSWORD_CREDENTIAL
+                       sh './django.sh'
+                   }
+               }
+           }
+       }
+   }
+}
