@@ -1,0 +1,32 @@
++ docker-compose exec -T djangoapp python manage.py test
+System check identified no issues (0 silenced).
+
+----------------------------------------------------------------------
+Ran 0 tests in 0.000s
+
+OK
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Run Django Setup)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] withCredentials
+Masking supported pattern matches of $DJANGO_SUPERUSER_PASSWORD_CREDENTIAL
+[Pipeline] {
+[Pipeline] sh
++ ./django.sh
+/var/lib/jenkins/workspace/env@tmp/durable-f07bed55/script.sh: 1: ./django.sh: Permission denied
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+ERROR: script returned exit code 126
+Finished: FAILURE
