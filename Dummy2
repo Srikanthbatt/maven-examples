@@ -1,12 +1,12 @@
-ERROR: for djangoapp  Cannot start service djangoapp: failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: "/app/django.sh": permission denied: unknown
-
-ERROR: for djangoapp  Cannot start service djangoapp: failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: exec: "/app/django.sh": permission denied: unknown
-Encountered errors while bringing up the project.
+db is up-to-date
+Creating djangoapp ... 
+Creating djangoapp ... done
 [Pipeline] }
 [Pipeline] // stage
 [Pipeline] stage
 [Pipeline] { (Run Tests)
-Stage "Run Tests" skipped due to earlier failure(s)
+[Pipeline] sh
++ docker-compose exec -T djangoapp python manage.py test
 [Pipeline] }
 [Pipeline] // stage
 [Pipeline] stage
