@@ -105,3 +105,63 @@ services:
 volumes:
   pgdata: {}
 
+
+
+pipeline {
+   agent any
+
+   environment {
+       registry = "srikanthbattula/djangoapp"
+       registryCredential = 'dockerhub_id'
+       DJANGO_SUPERUSER_PASSWORD = ('django_id')
+   }
+
+   stages {
+       stage('Checkout') {
+           steps {
+               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Srikanthbatt/Django-Postgres.git']])
+           }
+       }
+
+       stage('Build and Push Image') {
+           steps {
+               script {
+                   // Build and push your Docker image
+                   dockerImage = docker.build registry
+                   docker.withRegistry('', registryCredential) {
+                       dockerImage.push()
+                   }
+               }
+           }
+       }
+
+       stage('Deploy Using Docker Compose') {
+           steps {
+               // Start services using Docker Compose
+               sh 'docker-compose up -d'
+           }
+       }
+
+       stage('Run Tests') {
+           steps {
+               // Run tests for the Django application
+               sh 'docker-compose exec -T djangoapp python manage.py test'
+           }
+       }
+
+       stage('Run Django Setup') {
+           steps {
+               script {
+                   // Set executable permissions for django.sh
+                   sh 'chmod +x django.sh'
+                   // Get the secret value using withCredentials
+                   withCredentials([string(credentialsId: 'django_id', variable: 'DJANGO_SUPERUSER_PASSWORD')]) {
+                       DJANGO_SUPERUSER_PASSWORD = env.DJANGO_SUPERUSER_PASSWORD
+                       sh './django.sh'
+                   }
+               }
+           }
+       }
+   }
+}
+
