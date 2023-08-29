@@ -228,3 +228,9 @@ pipeline {
        }
    }
 }
+
+
+
+
+
+It looks as if pip3 install has installed the package into /usr/local/lib/python3.6/site-packages, instead of your environment /Users/xxx/anaconda/envs/env/lib/python3.6/site-packages.
