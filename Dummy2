@@ -1,23 +1,57 @@
-db is up-to-date
-Creating djangoapp ... 
-Creating djangoapp ... done
-[Pipeline] }
-[Pipeline] // stage
-[Pipeline] stage
-[Pipeline] { (Run Tests)
-[Pipeline] sh
-+ docker-compose exec -T djangoapp python manage.py test
-[Pipeline] }
-[Pipeline] // stage
-[Pipeline] stage
-[Pipeline] { (Run Django Setup)
-Stage "Run Django Setup" skipped due to earlier failure(s)
-[Pipeline] }
-[Pipeline] // stage
-[Pipeline] }
-[Pipeline] // withEnv
-[Pipeline] }
-[Pipeline] // node
-[Pipeline] End of Pipeline
-ERROR: script returned exit code 1
-Finished: FAILURE
+pipeline {
+   agent any
+
+   environment {
+       registry = "srikanthbattula/djangoapp"
+       registryCredential = 'dockerhub_id'
+       DJANGO_SUPERUSER_PASSWORD = credentials('django_id')
+   }
+
+   stages {
+       stage('Checkout') {
+           steps {
+               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Srikanthbatt/Django-Postgres.git']])
+           }
+       }
+
+       stage('Build and Push Image') {
+           steps {
+               script {
+                   // Build and push your Docker image
+                   dockerImage = docker.build registry
+                   docker.withRegistry('', registryCredential) {
+                       dockerImage.push()
+                   }
+               }
+           }
+       }
+
+       stage('Deploy Using Docker Compose') {
+           steps {
+               // Start services using Docker Compose
+               sh 'docker-compose up -d'
+           }
+       }
+
+       stage('Run Django Setup') {
+           steps {
+               // Set executable permissions for django.sh
+               sh 'chmod +x django.sh'
+
+               // Use the DJANGO_SUPERUSER_PASSWORD environment variable here
+               script {
+                   withCredentials([string(credentialsId: 'django_id', variable: 'DJANGO_SUPERUSER_PASSWORD')]) {
+                       sh './django.sh'
+                   }
+               }
+           }
+       }
+
+       stage('Run Tests') {
+           steps {
+               // Run tests for the Django application
+               sh 'docker-compose exec -T djangoapp python manage.py test'
+           }
+       }
+   }
+}
