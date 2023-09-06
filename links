@@ -1,0 +1,31 @@
+5c0895afa8a3: Pushed
+latest: digest: sha256:6c104668b111b5a102ce5e306e6b3ceb732cfbffee9891bc56b4dc57df72d257 size: 3259
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withDockerRegistry
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy Using Docker Compose)
+[Pipeline] sh
++ docker-compose up -d
+/var/lib/jenkins/workspace/Django App@tmp/durable-7fa32126/script.sh: 1: docker-compose: not found
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Run Tests)
+Stage "Run Tests" skipped due to earlier failure(s)
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+ERROR: script returned exit code 127
+Finished: FAILURE
