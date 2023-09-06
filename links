@@ -95,21 +95,19 @@ pipeline {
        }
 
        stage('Run Django Setup') {
-          steps {
-              script {
-                  // Set executable permissions for django.sh
-                  sh 'chmod +x django.sh'
+   steps {
+       script {
+           // Set executable permissions for django.sh
+           sh 'chmod +x django.sh'
 
-                  // Add the directory containing Python to PATH
-                  def pythonPath = tool name: 'Python3', type: 'Tool Installation'
-                  env.PATH = "${pythonPath}:${env.PATH}"
-
-                  // Run tests for the Django application
-                  sh 'docker-compose exec -T djangoapp python manage.py test'
-                  // Run Django setup
-                  sh './django.sh'
-              }
-          }
-      }
-  }
+           // Retrieve the DJANGO_SUPERUSER_PASSWORD credential
+           withCredentials([string(credentialsId: 'django_id1', variable: 'DJANGO_SUPERUSER_PASSWORD')]) {
+               // Run tests for the Django application
+               sh 'docker-compose exec -T djangoapp python manage.py test'
+               // Run Django setup
+               sh './django.sh'
+           }
+       }
+   }
 }
+
