@@ -61,3 +61,5 @@ https://www.imaginelinux.com/install-sonarqube-on-ubuntu-22-04/
 
 sudo sh -c 'echo "deb https://jfrog.bintray.com/artifactory-debs $(lsb_release -sc) main" > /etc/apt/sources.list.d/jfrog.list'
 sudo apt install jfrog-artifactory-oss
+
+https://www.coachdevops.com/2020/05/automate-docker-builds-using-jenkins.html
