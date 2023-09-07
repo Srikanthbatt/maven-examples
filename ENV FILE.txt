@@ -54,3 +54,70 @@ pipeline {
        }
    }
 }
+
+
+
+
+pipeline {
+   agent any
+
+ 
+
+   environment {
+       registry = "srikanthbattula/djangoapp"
+       registryCredential = 'django_id'
+       DJANGO_SUPERUSER_PASSWORD = ('django_id1')
+   }
+
+ 
+
+   stages {
+       stage('Checkout') {
+           steps {
+               checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Srikanthbatt/python-app.git']])
+           }
+       }
+
+ 
+
+       stage('Build and Push Image') {
+           steps {
+               script {
+                   // Build and push your Docker image
+                   dockerImage = docker.build registry
+                   docker.withRegistry('', registryCredential) {
+                       dockerImage.push()
+                   }
+               }
+           }
+       }
+
+ 
+
+       stage('Deploy Using Docker Compose') {
+           steps {
+               // Start services using Docker Compose
+               sh 'docker-compose up -d'
+           }
+       }
+
+ 
+
+       stage('Run Django Setup') {
+           steps {
+               script {
+                   // Set executable permissions for django.sh
+                   sh 'chmod +x django.sh'
+                   // Get the secret value using withCredentials
+                   withCredentials([string(credentialsId: 'django_id1', variable: 'DJANGO_SUPERUSER_PASSWORD')]) {
+                       DJANGO_SUPERUSER_PASSWORD = env.DJANGO_SUPERUSER_PASSWORD
+                       // Run tests for the Django application
+                       sh 'docker-compose exec -T djangoapp python manage.py test'
+                       // Run Django setup
+                       sh './django.sh'
+                   }
+               }
+           }
+       }
+   }
+}
