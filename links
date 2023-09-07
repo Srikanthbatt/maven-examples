@@ -1,18 +1,18 @@
-  pipeline {
-      agent any
-      stages {
-          stage('Build') {
-              steps {
-                  // Bind MySQL credentials from Jenkins Credentials
-                  withCredentials([usernamePassword(credentialsId: 'your-credentials-id', usernameVariable: 'MYSQL_USER', passwordVariable: 'MYSQL_PASSWORD')]) {
+pipeline {
+   agent any
+   stages {
+       stage('Build') {
+           steps {
+               // Bind MySQL credentials from Jenkins Credentials
+               withCredentials([usernamePassword(credentialsId: 'your-credentials-id', usernameVariable: 'MYSQL_USER', passwordVariable: 'MYSQL_PASSWORD')]) {
 
-                      // Your Spring Boot application build and deployment steps
-                      sh '''
-                          mvn clean install
-                          java -jar your-app.jar --spring.datasource.username=$MYSQL_USER --spring.datasource.password=$MYSQL_PASSWORD
-                      '''
-                  }
-              }
-          }
-      }
-  }
+                   // Echo MySQL credentials to the console
+                   sh '''
+                       echo "MySQL Username: $MYSQL_USER"
+                       echo "MySQL Password: $MYSQL_PASSWORD"
+                   '''
+               }
+           }
+       }
+   }
+}
