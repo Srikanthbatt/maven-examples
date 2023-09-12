@@ -123,3 +123,80 @@ WorkflowScript: 3: No variables specified for environment @ line 3, column 4.
 	at hudson.model.ResourceController.execute(ResourceController.java:101)
 	at hudson.model.Executor.run(Executor.java:442)
 Finished: FAILURE
+
+pipeline {
+   agent any
+
+   environment {
+       DB_USER = credentials('java_id').username
+       DB_PASSWORD = credentials('java_id').password
+   }
+
+   stages {
+       stage('Checkout') {
+           steps {
+               checkout scm
+           }
+       }
+
+       stage('Build Backend') {
+           steps {
+               sh 'mvn clean install' // Assuming Maven is used for Spring Boot
+           }
+       }
+
+       stage('Build Frontend') {
+           steps {
+               sh 'npm install' // Install frontend dependencies
+               sh 'npm run build' // Build Angular app
+           }
+       }
+
+       stage('Database Setup') {
+           steps {
+               script {
+                   // Use 'mysql' command to interact with MySQL
+                   def mysqlCommand = "mysql -u ${DB_USER} -p${DB_PASSWORD} employeedb -e 'SELECT 1;'"
+                   // Execute a simple query to check the database connectivity
+                   def result = sh(script: mysqlCommand, returnStatus: true)
+                   if (result != 0) {
+                       error('Failed to connect to the MySQL database')
+                   }
+               }
+           }
+       }
+
+       stage('Deploy Backend') {
+           steps {
+               // Deploy the Spring Boot application, e.g., using Docker or other means
+           }
+       }
+
+       stage('Deploy Frontend') {
+           steps {
+               // Deploy the Angular frontend to a web server or CDN
+           }
+       }
+
+       stage('Test') {
+           steps {
+               // Run tests for the application (backend and frontend)
+           }
+       }
+
+       stage('Cleanup') {
+           steps {
+               // Perform any cleanup or post-deployment tasks
+           }
+       }
+   }
+
+   post {
+       success {
+           // Notify or perform actions on success
+       }
+       failure {
+           // Notify or perform actions on failure
+       }
+   }
+}
