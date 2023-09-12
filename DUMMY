@@ -1,137 +1,6 @@
 pipeline {
    agent any
 
-   environment {
-       DB_USER = credentials('java_id').username
-       DB_PASSWORD = credentials('java_id').password
-   }
-
-   stages {
-       stage('Checkout') {
-           steps {
-               checkout scm
-           }
-       }
-
-       stage('Build Backend') {
-           steps {
-               sh 'mvn clean install' // Assuming Maven is used for Spring Boot
-           }
-       }
-
-       stage('Build Frontend') {
-           steps {
-               sh 'npm install' // Install frontend dependencies
-               sh 'npm run build' // Build Angular app
-           }
-       }
-
-       stage('Database Setup') {
-           steps {
-               sh "mysql -u $DB_USER -p$DB_PASSWORD -e 'CREATE DATABASE your_database'"
-           }
-       }
-
-       stage('Deploy Backend') {
-           steps {
-               // Deploy the Spring Boot application, e.g., using Docker or other means
-           }
-       }
-
-       stage('Deploy Frontend') {
-           steps {
-               // Deploy the Angular frontend to a web server or CDN
-           }
-       }
-
-       stage('Test') {
-           steps {
-               // Run tests for the application (backend and frontend)
-           }
-       }
-
-       stage('Cleanup') {
-           steps {
-               // Perform any cleanup or post-deployment tasks
-           }
-       }
-   }
-
-   post {
-       success {
-           // Notify or perform actions on success
-       }
-       failure {
-           // Notify or perform actions on failure
-       }
-   }
-}
-
-Started by user admin
-org.codehaus.groovy.control.MultipleCompilationErrorsException: startup failed:
-WorkflowScript: 4: Environment variable values must either be single quoted, double quoted, or function calls. @ line 4, column 18.
-          DB_USER = credentials('java_id').username
-                    ^
-
-WorkflowScript: 5: Environment variable values must either be single quoted, double quoted, or function calls. @ line 5, column 22.
-          DB_PASSWORD = credentials('java_id').password
-                        ^
-
-WorkflowScript: 35: No steps specified for branch @ line 35, column 18.
-              steps {
-                    ^
-
-WorkflowScript: 41: No steps specified for branch @ line 41, column 18.
-              steps {
-                    ^
-
-WorkflowScript: 47: No steps specified for branch @ line 47, column 18.
-              steps {
-                    ^
-
-WorkflowScript: 53: No steps specified for branch @ line 53, column 18.
-              steps {
-                    ^
-
-WorkflowScript: 60: No steps specified for branch @ line 60, column 16.
-          success {
-                  ^
-
-WorkflowScript: 63: No steps specified for branch @ line 63, column 16.
-          failure {
-                  ^
-
-WorkflowScript: 3: No variables specified for environment @ line 3, column 4.
-      environment {
-      ^
-
-9 errors
-
-	at org.codehaus.groovy.control.ErrorCollector.failIfErrors(ErrorCollector.java:309)
-	at org.codehaus.groovy.control.CompilationUnit.applyToPrimaryClassNodes(CompilationUnit.java:1107)
-	at org.codehaus.groovy.control.CompilationUnit.doPhaseOperation(CompilationUnit.java:624)
-	at org.codehaus.groovy.control.CompilationUnit.processPhaseOperations(CompilationUnit.java:602)
-	at org.codehaus.groovy.control.CompilationUnit.compile(CompilationUnit.java:579)
-	at groovy.lang.GroovyClassLoader.doParseClass(GroovyClassLoader.java:323)
-	at groovy.lang.GroovyClassLoader.parseClass(GroovyClassLoader.java:293)
-	at org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.GroovySandbox$Scope.parse(GroovySandbox.java:163)
-	at org.jenkinsci.plugins.workflow.cps.CpsGroovyShell.doParse(CpsGroovyShell.java:190)
-	at org.jenkinsci.plugins.workflow.cps.CpsGroovyShell.reparse(CpsGroovyShell.java:175)
-	at org.jenkinsci.plugins.workflow.cps.CpsFlowExecution.parseScript(CpsFlowExecution.java:580)
-	at org.jenkinsci.plugins.workflow.cps.CpsFlowExecution.start(CpsFlowExecution.java:526)
-	at org.jenkinsci.plugins.workflow.job.WorkflowRun.run(WorkflowRun.java:335)
-	at hudson.model.ResourceController.execute(ResourceController.java:101)
-	at hudson.model.Executor.run(Executor.java:442)
-Finished: FAILURE
-
-pipeline {
-   agent any
-
-   environment {
-       DB_USER = credentials('java_id').username
-       DB_PASSWORD = credentials('java_id').password
-   }
-
    stages {
        stage('Checkout') {
            steps {
@@ -155,13 +24,11 @@ pipeline {
        stage('Database Setup') {
            steps {
                script {
-                   // Use 'mysql' command to interact with MySQL
-                   def mysqlCommand = "mysql -u ${DB_USER} -p${DB_PASSWORD} employeedb -e 'SELECT 1;'"
-                   // Execute a simple query to check the database connectivity
-                   def result = sh(script: mysqlCommand, returnStatus: true)
-                   if (result != 0) {
-                       error('Failed to connect to the MySQL database')
-                   }
+                   def dbUser = 'your_db_username'
+                   def dbPassword = 'your_db_password'
+                   def dbName = 'employeedb'
+
+                   sh "mysql -u ${dbUser} -p${dbPassword} -e 'USE ${dbName}'"
                }
            }
        }
