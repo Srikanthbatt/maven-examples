@@ -1,0 +1,117 @@
+pipeline {
+    agent any
+    tools{
+        jdk  'jdk17'
+        maven  'maven3'
+    }
+    
+    environment{
+        SCANNER_HOME= tool 'sonar-scanner'
+    }
+    
+    stages{
+        stage ('Checkout Code from GIT') {
+            steps{
+                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Srikanthbatt/docker-compose.git']])
+            }
+        }
+        
+        stage('OWASP Scan') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ ', odcInstallation: 'DC'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        
+        
+        stage('Sonarqube') {
+            steps {
+                withSonarQubeEnv('sonar-server'){
+                   sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Java-App \
+                   -Dsonar.java.binaries=. \
+                   -Dsonar.projectKey=Java-App '''
+               }
+            }
+        }
+        
+        
+        stage('Build & Tag Docker image') {
+            steps {
+                script{
+                    withDockerRegistry(credentialsId: 'django_id', toolName: 'docker') {
+                        
+                        sh "docker build -t java-app -f springboot-backend/Dockerfile ."
+                        sh "docker tag  java-app srikanthbattula/java-app:latest"
+                    }
+                }
+            }
+        }
+        
+        stage('Trivy image scan') {
+            steps {
+                sh "trivy image srikanthbattula/java-app:latest"
+            }
+        }
+        
+        stage('Push Docker image') {
+            steps {
+                script{
+                    withDockerRegistry(credentialsId: 'django_id', toolName: 'docker') {
+                        sh "docker push srikanthbattula/java-app:latest"
+                    }
+                }
+            }
+        }
+        /*
+        
+        stage('Build & Tag Docker image') {
+            steps {
+                script{
+                    withDockerRegistry(credentialsId: 'django_id', toolName: 'docker') {
+                        
+                        sh "docker build -t angular-app -f angular\\ app/app/Dockerfile ."
+                        sh "docker tag  angular-app srikanthbattula/angular-app:latest"
+                    }
+                }
+            }
+        }
+        
+        stage('Trivy image scan') {
+            steps {
+                sh "trivy image srikanthbattula/angular-app:latest"
+            }
+        }
+        
+        stage('Push Docker image') {
+            steps {
+                script{
+                    withDockerRegistry(credentialsId: 'django_id', toolName: 'docker') {
+                        sh "docker push srikanthbattula/angular-app:latest"
+                    }
+                }
+            }
+        }
+        
+        /*
+        stage ('angular') {
+            steps {
+                dir('angular app/app') {
+                    sh 'npm install'
+                    sh 'npm run build --force'
+                    sh 'ng serve --open'
+                }
+            }
+        }
+        */
+    }
+}
+/*
+post {
+        success {
+            slackSend channel: 'java-demo', message: 'Pipeline succeeded', tokenCredentialId: 'slack-token'
+        }
+        failure {
+            slackSend channel: 'java-demo', message: 'Pipeline failed', tokenCredentialId: 'slack-token'
+        }
+    }
+    */
