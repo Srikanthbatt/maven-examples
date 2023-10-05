@@ -1,0 +1,88 @@
+pipeline {
+    agent any
+    tools{
+        jdk  'jdk11'
+        maven  'maven3'
+    }
+    
+    environment{
+        SCANNER_HOME= tool 'sonar-scanner'
+    }
+    
+    stages {
+        stage('Git Checkout') {
+            steps {
+                git branch: 'master', url: 'https://github.com/Srikanthbatt/docker-compose.git'
+            }
+        }
+        
+        stage('COMPILE') {
+            steps {
+                sh "mvn clean install -DskipTests=true"
+            }
+        }
+        
+        stage('Trivy fs scan') {
+            steps {
+                sh "trivy fs ."
+            }
+        }
+        
+        stage('OWASP Scan') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./ ', odcInstallation: 'DC'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+        
+        stage('Sonarqube') {
+            steps {
+                withSonarQubeEnv('sonar-server'){
+                   sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Shopping-Cart \
+                   -Dsonar.java.binaries=. \
+                   -Dsonar.projectKey=Shopping-Cart '''
+               }
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                sh "mvn clean package -DskipTests=true"
+            }
+        }
+        
+        stage('Build & Tag Docker image') {
+            steps {
+                script{
+                    withDockerRegistry(credentialsId: 'django_id', toolName: 'docker') {
+                        
+                        sh "docker build -t shopping-cart -f docker/Dockerfile ."
+                        sh "docker tag  shopping-cart srikanthbattula/shopping-cart:latest"
+                    }
+                }
+            }
+        }
+        
+        stage('Push Docker image') {
+            steps {
+                script{
+                    withDockerRegistry(credentialsId: 'django_id', toolName: 'docker') {
+                        sh "docker push srikanthbattula/shopping-cart:latest"
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy') {
+            steps {
+                script{
+                    withDockerRegistry(credentialsId: 'django_id', toolName: 'docker') {
+                        sh "docker run -d --name ekarto -p 8071:8070 srikanthbattula/shopping-cart:latest"
+                    }
+                }
+            }
+        }
+        
+        
+    }
+}
