@@ -1,164 +1,17 @@
-image: maven:3.8.4-openjdk-17
-
-pipelines:
-  default:
-    - step:
-        name: Checkout Code from GIT
-        script:
-          - git clone https://github.com/Srikanthbatt/docker-compose.git
-        caches:
-          - git
-
-    - step:
-        name: Springboot-backend
-        script:
-          - cd docker-compose/springboot-backend
-          - mvn clean install -DskipTests=true
-          - java -jar target/app.jar &
-        caches:
-          - maven
-
-    - step:
-        name: Sonarqube
-        script:
-          - pipe: sonarqube/scan:1.2.0
-            variables:
-              SONAR_USER_HOME: "${BITBUCKET_CLONE_DIR}/.sonar"
-              EXTRA_ARGS: '-Dsonar.projectName=Java-App -Dsonar.java.binaries=.'
-
-    - step:
-        name: Build & Tag Docker image
-        script:
-          - docker build -t java-app -f springboot-backend/Dockerfile .
-          - docker tag java-app $DOCKER_REGISTRY/java-app:latest
-        caches:
-          - docker
-
-    - step:
-        name: Trivy image scan
-        script:
-          - trivy image $DOCKER_REGISTRY/java-app:latest
-
-    - step:
-        name: Push Docker image
-        script:
-          - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD $DOCKER_REGISTRY
-          - docker push $DOCKER_REGISTRY/java-app:latest
-        caches:
-          - docker
-
-# Uncomment the following section if you want to include an Angular stage
-#   - step:
-#       name: angular
-#       script:
-#         - cd angular/app/app
-#         - npm install
-#         - npm run build --force
-#         - ng serve --open
-
-# Uncomment the following 'post' section if you want to send Slack notifications on success or failure
-# post:
-#   - success:
-#       script:
-#         - pipe: atlassian/slack-notify:0.3.4
-#           variables:
-#             WEBHOOK_URL: $SLACK_WEBHOOK
-#             MESSAGE: "Pipeline succeeded"
-#   - failure:
-#       script:
-#         - pipe: atlassian/slack-notify:0.3.4
-#           variables:
-#             WEBHOOK_URL: $SLACK_WEBHOOK
-#             MESSAGE: "Pipeline failed"
-
-
-
-pipeline {
-    agent any
-    tools{
-        jdk  'jdk17'
-        maven  'maven3'
-    }
-    
-    environment{
-        SCANNER_HOME= tool 'sonar-scanner'
-    }
-    
-    stages{
-        stage ('Checkout Code from GIT') {
-            steps{
-                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Srikanthbatt/docker-compose.git']])
-            }
-        }
+/*
         
-        stage ('Springboot-backend') {
+         stage('OWASP Scan') {
             steps {
-                dir('springboot-backend') {
-                    sh 'mvn clean install -DskipTests=true'
-                    sh 'java -jar springboot-backend/target/app.jar &'
-                }
+                dependencyCheck additionalArguments: '--scan ./angularapp/app --disableYarnAudit --disableNodeAudit', odcInstallation: 'DC'
             }
         }
         
-        stage('Sonarqube') {
-            steps {
-                withSonarQubeEnv('sonar-server'){
-                   sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Java-App \
-                   -Dsonar.java.binaries=. \
-                   -Dsonar.projectKey=Java-App '''
-               }
-            }
-        }
-        
-        
-        stage('Build & Tag Docker image') {
-            steps {
-                script{
-                    withDockerRegistry(credentialsId: 'django_id', toolName: 'docker') {
-                        
-                        sh "docker build -t java-app -f springboot-backend/Dockerfile ."
-                        sh "docker tag  java-app srikanthbattula/java-app:latest"
-                    }
-                }
-            }
-        }
-        
-        stage('Trivy image scan') {
-            steps {
-                sh "trivy image srikanthbattula/java-app:latest"
-            }
-        }
-        
-        stage('Push Docker image') {
-            steps {
-                script{
-                    withDockerRegistry(credentialsId: 'django_id', toolName: 'docker') {
-                        sh "docker push srikanthbattula/java-app:latest"
-                    }
-                }
-            }
-        }
-        
-        /*
         stage ('angular') {
             steps {
-                dir('angular app/app') {
+                dir('angularapp/app') {
                     sh 'npm install'
-                    sh 'npm run build --force'
-                    sh 'ng serve --open'
+                    sh 'npm run start &'
                 }
             }
         }
         */
-    }
-}
-/*
-post {
-        success {
-            slackSend channel: 'java-demo', message: 'Pipeline succeeded', tokenCredentialId: 'slack-token'
-        }
-        failure {
-            slackSend channel: 'java-demo', message: 'Pipeline failed', tokenCredentialId: 'slack-token'
-        }
-    }
-    */
