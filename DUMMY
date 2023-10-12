@@ -15,3 +15,7 @@
             }
         }
         */
+ stage('Trivy image scan') {
+            steps {
+                sh "trivy image srikanthbattula/angular-app:latest"
+                sh "trivy image --format json -o trivy-report.json --scanners vuln srikanthbattula/angular-app:latest"
