@@ -24,3 +24,25 @@
             steps {
                 sshagent(['ec2-pem-key']) {
                    sh "scp -r -o StrictHostKeyChecking=no angularapp/app/dist/app ubuntu@50.19.87.84:/opt/tomcat/apache-tomcat-8.5.93/webapps"
+
+
+post {
+        failure {
+            steps {
+                script {
+                    slackSend(
+                        channel: 'angular',
+                        color: 'danger',
+                        message: "Pipeline failed: ${currentBuild.fullDisplayName} - ${currentBuild.result}"
+                    )
+                }
+            }
+        }
+        success {
+            steps {
+                script {
+                    slackSend(channel: 'angular', color: 'good', message: "Pipeline Succeeded: ${currentBuild.fullDisplayName}")
+                }
+            }
+        }
+    }
