@@ -46,3 +46,18 @@ post {
             }
         }
     }
+
+
+
+    post {
+    success {
+        script {
+            slackSend(channel: 'angular', color: 'good', message: "Pipeline Succeeded: ${currentBuild.fullDisplayName}")
+        }
+    }
+    failure {
+        script {
+            slackSend(channel: 'angular', color: 'danger', message: "Pipeline Failed: ${currentBuild.fullDisplayName}")
+        }
+    }
+}
