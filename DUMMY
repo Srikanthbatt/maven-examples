@@ -19,3 +19,8 @@
             steps {
                 sh "trivy image srikanthbattula/angular-app:latest"
                 sh "trivy image --format json -o trivy-report.json --scanners vuln srikanthbattula/angular-app:latest"
+
+ stage('Deploy to Tomcat') {
+            steps {
+                sshagent(['ec2-pem-key']) {
+                   sh "scp -r -o StrictHostKeyChecking=no angularapp/app/dist/app ubuntu@50.19.87.84:/opt/tomcat/apache-tomcat-8.5.93/webapps"
