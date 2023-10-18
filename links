@@ -1,2 +1,3 @@
 https://www.imaginelinux.com/install-sonarqube-on-ubuntu-22-04/#google_vignette
 http://50.19.87.84:8080/manager/html/start?path=/app&org.apache.catalina.filters.CSRF_NONCE=369D29D90E96961F14F9FE955BDDE21B
+http://172.27.59.80:8082/artifactory/srikanth-alm/
