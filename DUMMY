@@ -61,3 +61,7 @@ post {
         }
     }
 }
+  stage('OWASP Scan') {
+            steps {
+                dependencyCheck additionalArguments: '--scan ./angularapp/app --disableYarnAudit --disableNodeAudit', odcInstallation: 'DC'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
